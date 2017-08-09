@@ -30,7 +30,7 @@ namespace AFCTravel.Api.Models {
         public List<Payment> Payments { get; set; }
         public string Progress { get; set; }
         public List<Quote> Quotes { get; set; }
-        public List<string> Signatures { get; set; }
+        public List<Signature> Signatures { get; set; }
         public string Status { get; set; }
         public DateTime TravelFromDate { get; set; }
         public DateTime TravelToDate { get; set; }
