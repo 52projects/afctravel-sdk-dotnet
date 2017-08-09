@@ -12,7 +12,7 @@ namespace AFCTravel.Api.Tests.Trips {
     public class GetTests : Base {
         [Test]
         public void integration_trips_get_trip() {
-            var trip = RestClient.Trips.Get("1050");
+            var trip = RestClient.Trips.Get("15127");
             trip.ShouldNotBe(null);
         }
     }

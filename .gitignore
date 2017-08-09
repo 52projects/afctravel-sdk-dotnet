@@ -12,6 +12,7 @@ TestResults
 *.suo
 *.user
 *.sln.docstates
+*credentials.config
 
 # Build results
 [Dd]ebug/
@@ -118,8 +119,6 @@ Backup*/
 UpgradeLog*.XML
 *.DS_Store
 
-web/MissionTrips.Web/config.codekit
-web/MissionTrips.Web/assets/css/.sass-cache/1afcc90758de4e8aa0352fcc531be4f394df7b15/theme-default.scssc
 
 *.suo
 *.pdb
