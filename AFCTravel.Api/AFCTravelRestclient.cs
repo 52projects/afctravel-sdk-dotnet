@@ -11,6 +11,7 @@ namespace AFCTravel.Api {
         private string _secretKey;
         private string _accessCode;
         private TripSet _trips;
+        private PNRSet _pnrs;
 
         public AFCTravelRestClient(string username, string secretkey, string accessCode) {
             _username = username;
@@ -25,6 +26,15 @@ namespace AFCTravel.Api {
                     _trips = new TripSet(_username, _secretKey, _accessCode);
                 }
                 return _trips;
+            }
+        }
+
+        public PNRSet PNRs {
+            get {
+                if (_pnrs == null) {
+                    _pnrs = new PNRSet(_username, _secretKey, _accessCode);
+                }
+                return _pnrs;
             }
         }
     }

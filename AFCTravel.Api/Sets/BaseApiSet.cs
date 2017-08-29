@@ -407,6 +407,9 @@ namespace AFCTravel.Api {
         }
 
         public void AddParameter(string key, string value) {
+            if (_parameters.ContainsKey(key)) {
+                _parameters.Remove(key);
+            }
             this._parameters.Add(new KeyValuePair<string, string>(key, value));
         }
         #endregion Actions

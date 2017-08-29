@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace AFCTravel.Api.Models {
     public class Trip {
@@ -11,6 +12,7 @@ namespace AFCTravel.Api.Models {
             this.Miscy = new List<Models.Miscy>();
             this.Payments = new List<Payment>();
             this.Quotes = new List<Quote>();
+            this.PNRS = new List<PNRLookup>();
         }
         public int ID { get; set; }
         public Agent Agent { get; set; }
@@ -31,6 +33,8 @@ namespace AFCTravel.Api.Models {
         public string Progress { get; set; }
         public List<Quote> Quotes { get; set; }
         public List<Signature> Signatures { get; set; }
+        [JsonProperty("pnrs")]
+        public List<PNRLookup> PNRS { get; set; }
         public string Status { get; set; }
         public DateTime TravelFromDate { get; set; }
         public DateTime TravelToDate { get; set; }
