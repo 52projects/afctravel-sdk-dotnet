@@ -26,7 +26,7 @@ namespace AFCTravel.Api.Models {
         public string ArrivalTimezone { get; set; }
         public string ArrivalChangeOfDay { get; set; }
         public string ArrivalTerminal { get; set; }
-        public string Airlinecode { get; set; }
+        public string AirlineCode { get; set; }
         public string AirlineName { get; set; }
         public int? FlightNumber { get; set; }
         public string OperatingAirlineCode { get; set; }
