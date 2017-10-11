@@ -63,6 +63,11 @@
     <Compile Include="Models\Client.cs" />
     <Compile Include="Models\Flight.cs" />
     <Compile Include="Models\Group.cs" />
+    <Compile Include="Models\Internal\Brand.cs" />
+    <Compile Include="Models\Internal\Cllient.cs" />
+    <Compile Include="Models\Internal\InternalTrip.cs" />
+    <Compile Include="Models\Internal\Quote.cs" />
+    <Compile Include="Models\Internal\Segment.cs" />
     <Compile Include="Models\Meal.cs" />
     <Compile Include="Models\Miscy.cs" />
     <Compile Include="Models\OriginDestination.cs" />

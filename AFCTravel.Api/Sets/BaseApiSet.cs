@@ -8,6 +8,11 @@ using AFCTravel.Api.Extensions;
 using AFCTravel.Api.Exceptions;
 using System.IO;
 using System.Security.Cryptography;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Net.Http.Headers;
 
 namespace AFCTravel.Api {
     public abstract class BaseApiSet<T> where T : new() {
@@ -18,9 +23,9 @@ namespace AFCTravel.Api {
         private IDictionary<string, string> _parameters = new Dictionary<string, string>();
         private readonly string _username;
         private readonly string _secretKey;
-        public const string BASE_URL = "https://www.managedtrip.com/ManagedTrip/api/partner/1.0/";
+        private readonly string _baseUrl = "https://www.managedtrip.com/ManagedTrip/api/partner/1.0/";
 
-        public string BaseUrl { get { return BASE_URL; } }
+        public string BaseUrl { get { return _baseUrl; } }
 
         /// <summary>
         /// The url for retrieving a specific entity. Call Get(string id) to use this property
@@ -73,6 +78,15 @@ namespace AFCTravel.Api {
             _contentType = contentType;
             _requestHeaders.Add("Authorization", "Basic " + this.CreateAuthorizationKey());
             _parameters.Add("accessCode", accessCode);
+        }
+
+        protected BaseApiSet(string username, string secretkey, string accessCode, ContentType contentType, string baseUrl) {
+            _username = username;
+            _secretKey = secretkey;
+            _contentType = contentType;
+            _requestHeaders.Add("Authorization", "Basic " + this.CreateAuthorizationKey());
+            _parameters.Add("accessCode", accessCode);
+            _baseUrl = baseUrl;
         }
 
         #endregion Constructor
@@ -222,72 +236,31 @@ namespace AFCTravel.Api {
             return response.Data;
         }
 
+        public virtual IRestResponse Create<S>(S entity, out string requestString, string url = "") where S : new() {
+            var targetUrl = BaseUrl + url;
+            requestString = string.Empty;
+
+            
+            //var httpClient = new HttpClient();
+            //httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", this.CreateAuthorizationKey());
+            //var content = new StringContent(SerializeToJson<S>(entity), Encoding.UTF8, "application/json");
+
+            // var result = httpClient.PostAsync(targetUrl, content).Result;
+            var request = CreateRestRequestWithRequestBody<S>(entity, url);
+            requestString = SerializeToJson<S>(entity);
+
+            var item = ExecuteRequest(request);
+            return item;
+        }
+
         public virtual bool Create<S>(S entity, string url = "") where S : new() {
-            var targetUrl = string.Empty;
-
-            if (!string.IsNullOrWhiteSpace(url)) {
-                if (url.Trim().StartsWith(BaseUrl)) {
-                    if (url.Trim().Length <= BaseUrl.Length) {
-                        throw new Exception("Invalid url: " + url);
-                    }
-                    targetUrl = url.Substring(BaseUrl.Length);
-                }
-                else {
-                    targetUrl = url;
-                }
-            }
-
-            if (string.IsNullOrWhiteSpace(targetUrl)) {
-                if (string.IsNullOrWhiteSpace(CreateUrl)) {
-                    throw new NotImplementedException("The property CreateUrl has no value on the ApiSet.");
-                }
-
-                targetUrl = CreateUrl;
-            }
-            var request = CreateRestRequest(Method.POST, targetUrl);
-            request.Timeout = 20000;
-            if (_contentType == ContentType.XML) {
-                request.AddParameter("application/xml", entity.ToXml(), ParameterType.RequestBody);
-            }
-            else if (_contentType == ContentType.JSON) {
-                request.AddParameter("application/json", Newtonsoft.Json.JsonConvert.SerializeObject(entity), ParameterType.RequestBody);
-            }
-
+            var request = CreateRestRequestWithRequestBody<S>(entity, url);
             var item = ExecuteRequest(request);
             return (int)item.StatusCode < 300;
         }
 
         public virtual T Create(T entity, string url = "") {
-            var targetUrl = string.Empty;
-
-            if (!string.IsNullOrWhiteSpace(url)) {
-                if (url.Trim().StartsWith(BaseUrl)) {
-                    if (url.Trim().Length <= BaseUrl.Length) {
-                        throw new Exception("Invalid url: " + url);
-                    }
-                    targetUrl = url.Substring(BaseUrl.Length);
-                }
-                else {
-                    targetUrl = url;
-                }
-            }
-
-            if (string.IsNullOrWhiteSpace(targetUrl)) {
-                if (string.IsNullOrWhiteSpace(CreateUrl)) {
-                    throw new NotImplementedException("The property CreateUrl has no value on the ApiSet.");
-                }
-
-                targetUrl = CreateUrl;
-            }
-            var request = CreateRestRequest(Method.POST, targetUrl);
-            request.Timeout = 20000;
-            if (_contentType == ContentType.XML) {
-                request.AddParameter("application/xml", entity.ToXml(), ParameterType.RequestBody);
-            }
-            else if (_contentType == ContentType.JSON) {
-                request.AddParameter("application/json", Newtonsoft.Json.JsonConvert.SerializeObject(entity), ParameterType.RequestBody);
-            }
-
+            var request = CreateRestRequestWithRequestBody<T>(entity, url);
             var item = ExecuteRequest(request);
             return item.Data;
         }
@@ -311,13 +284,25 @@ namespace AFCTravel.Api {
                 targetUrl = CreateUrl;
             }
 
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", this.CreateAuthorizationKey());
+            var content = new StringContent(SerializeToJson<T>(entity), Encoding.UTF8, "application/json");
+
+            Task<HttpResponseMessage> taskA = Task<HttpResponseMessage>.Factory.StartNew(() => httpClient.PostAsync(targetUrl, content).Result);
+            taskA.Wait();
+
+            var result = taskA.Result;
+
             var request = CreateRestRequest(Method.POST, targetUrl);
             request.Timeout = 20000;
             if (_contentType == ContentType.XML) {
                 request.AddParameter("application/xml", entity.ToXml(), ParameterType.RequestBody);
             }
             else if (_contentType == ContentType.JSON) {
-                request.AddParameter("application/json", Newtonsoft.Json.JsonConvert.SerializeObject(entity), ParameterType.RequestBody);
+                var jsonSettings = new JsonSerializerSettings();
+                jsonSettings.DateFormatString = "dd/MM/yyy hh:mm:ss";
+                jsonSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                request.AddParameter("application/json", Newtonsoft.Json.JsonConvert.SerializeObject(entity, Formatting.Indented, jsonSettings), ParameterType.RequestBody);
             }
 
             var item = ExecuteRequest(request);
@@ -530,9 +515,8 @@ namespace AFCTravel.Api {
                 Resource = url
             };
             request.RequestFormat = _contentType == ContentType.JSON ? DataFormat.Json : DataFormat.Xml;
-            request.AddHeader("Accept-Encoding", "gzip,deflate");
-            request.AddHeader("Content-Type", !string.IsNullOrEmpty(contentType) ? contentType : _contentType == ContentType.XML ? "application/xml" : "application/json");
-
+            //request.AddHeader("Accept-Encoding", "gzip,deflate");
+            //request.AddHeader("Content-Type", !string.IsNullOrEmpty(contentType) ? contentType : _contentType == ContentType.XML ? "application/xml" : "application/json");
             if (_requestHeaders != null && _requestHeaders.Count > 0) {
                 foreach (var current in _requestHeaders) {
                     request.AddHeader(current.Key, current.Value);
@@ -546,6 +530,51 @@ namespace AFCTravel.Api {
             }
 
             return request;
+        }
+
+        private RestRequest CreateRestRequestWithRequestBody<S>(S entity, string url) where S : new() {
+            var targetUrl = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(url)) {
+                if (url.Trim().StartsWith(BaseUrl)) {
+                    if (url.Trim().Length <= BaseUrl.Length) {
+                        throw new Exception("Invalid url: " + url);
+                    }
+                    targetUrl = url.Substring(BaseUrl.Length);
+                }
+                else {
+                    targetUrl = url;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(targetUrl)) {
+                if (string.IsNullOrWhiteSpace(CreateUrl)) {
+                    throw new NotImplementedException("The property CreateUrl has no value on the ApiSet.");
+                }
+
+                targetUrl = CreateUrl;
+            }
+
+            _parameters.Remove("accessCode");
+
+            var request = CreateRestRequest(Method.POST, targetUrl);
+            request.Timeout = 20000;
+            if (_contentType == ContentType.XML) {
+                request.AddParameter("application/xml", entity.ToXml(), ParameterType.RequestBody);
+            }
+            else if (_contentType == ContentType.JSON) {
+                request.AddParameter("application/json", SerializeToJson<S>(entity), ParameterType.RequestBody);
+            }
+
+            return request;
+        }
+
+        private string SerializeToJson<S>(S entity) {
+            var jsonSettings = new JsonSerializerSettings();
+            jsonSettings.DateFormatString = "yyyy-mm-dd hh:mm:ss";
+            jsonSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            jsonSettings.Formatting = Formatting.Indented;
+            return Newtonsoft.Json.JsonConvert.SerializeObject(entity, jsonSettings);
         }
 
         //method for converting stream to byte[]

@@ -12,7 +12,7 @@ namespace AFCTravel.Api.Sets {
         private const string SHOW_URL = "/trip/{0}/pnr/{1}";
         private const string CREATE_URL = "";
 
-        public PNRSet(string username, string secretKey, string accessCode) : base(username, secretKey, accessCode, ContentType.JSON) {
+        public PNRSet(string username, string secretKey, string accessCode, string baseUrl) : base(username, secretKey, accessCode, ContentType.JSON, baseUrl) {
 
         }
 

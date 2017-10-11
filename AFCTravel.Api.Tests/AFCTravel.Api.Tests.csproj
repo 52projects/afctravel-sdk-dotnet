@@ -72,6 +72,7 @@
     <Compile Include="Base.cs" />
     <Compile Include="PNRs\ListTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Trips\CreateTests.cs" />
     <Compile Include="Trips\GetTests.cs" />
   </ItemGroup>
   <ItemGroup>

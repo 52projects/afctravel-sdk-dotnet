@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AFCTravel.Api.Models;
+using AFCTravel.Api.Models.Internal;
 
 namespace AFCTravel.Api.Sets {
     public class TripSet : BaseApiSet<Trip> {
@@ -12,7 +13,7 @@ namespace AFCTravel.Api.Sets {
         private const string SHOW_URL = "/trip/{0}";
         private const string CREATE_URL = "";
 
-        public TripSet(string username, string secretKey, string accessCode) : base(username, secretKey, accessCode, ContentType.JSON) {
+        public TripSet(string username, string secretKey, string accessCode, string baseUrl) : base(username, secretKey, accessCode, ContentType.JSON, baseUrl) {
 
         }
         protected override string ListUrl { get { return LIST_URL; } }
@@ -40,6 +41,17 @@ namespace AFCTravel.Api.Sets {
             get {
                 return LIST_URL;
             }
+        }
+
+        public Trip CreateTrip(InternalTrip internalTrip) {
+            var requestString = string.Empty;
+            var response = Create<InternalTrip>(internalTrip, out requestString, "/trip/save");
+
+            if ((int)response.StatusCode > 300) {
+                return null;
+            }
+
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<Trip>(response.Content);
         }
     }
 }
