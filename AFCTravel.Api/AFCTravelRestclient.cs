@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AFCTravel.Api.Sets;
+using System.Net;
 
 namespace AFCTravel.Api {
     public class AFCTravelRestClient {
@@ -15,12 +16,14 @@ namespace AFCTravel.Api {
         private string _baseUrl = "https://www.managedtrip.com/ManagedTrip/api/partner/1.0/";
 
         public AFCTravelRestClient(string username, string secretkey, string accessCode) {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11;
             _username = username;
             _secretKey = secretkey;
             _accessCode = accessCode;
         }
 
         public AFCTravelRestClient(string username, string secretkey, string accessCode, string baseUrl) {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11;
             _username = username;
             _secretKey = secretkey;
             _accessCode = accessCode;
